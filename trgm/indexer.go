@@ -76,10 +76,12 @@ func (i *Indexer) PostLoad(ctx context.Context) error {
 		return errors.WithStack(err)
 	}
 
-	_, err = i.Conn.Exec(ctx, `
-CREATE INDEX ON foods USING GIN (name gin_trgm_ops);
-CREATE INDEX ON foods USING GIN (analyzed gin_trgm_ops);
-	`)
+	_, err = i.Conn.Exec(ctx, `CREATE INDEX ON foods USING GIN (name gin_trgm_ops);`)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	_, err = i.Conn.Exec(ctx, `CREATE INDEX ON foods USING GIN (analyzed gin_trgm_ops);`)
 	return errors.WithStack(err)
 }
 

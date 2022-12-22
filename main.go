@@ -85,17 +85,18 @@ func Load(ctx context.Context, conn *pgx.Conn) error {
 		return err
 	}
 
-	// TODO Load branded foods, it's MUCH larger.
-	f := MustT(os.Open("data/foundation-foods.json"))
-	defer f.Close()
+	for _, path := range []string{"data/foundation-foods.json", "data/branded-foods.json"} {
+		f := MustT(os.Open(path))
+		defer f.Close()
 
-	if err := LoadChunks(f, 250, func(chunk []*trgm.Food) error {
-		if err := indexer.LoadChunk(ctx, chunk); err != nil {
+		if err := LoadChunks(f, 250, func(chunk []*trgm.Food) error {
+			if err := indexer.LoadChunk(ctx, chunk); err != nil {
+				return err
+			}
+			return nil
+		}); err != nil {
 			return err
 		}
-		return nil
-	}); err != nil {
-		return err
 	}
 
 	if err := indexer.PostLoad(ctx); err != nil {
