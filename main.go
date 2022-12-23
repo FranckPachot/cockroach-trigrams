@@ -52,6 +52,7 @@ func Query(ctx context.Context, conn *pgx.Conn, query string) error {
 		&trgm.Naive{Conn: conn, AnalyzedQuery: true, AnalyzedField: true},
 		&trgm.Tokenized{Conn: conn},
 		&trgm.ILike{Conn: conn},
+		&trgm.DIYTrigrams{Conn: conn},
 	}
 
 	for i, querier := range queriers {

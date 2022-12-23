@@ -164,3 +164,50 @@ func (s *ILike) Query(ctx context.Context, query string) ([]string, error) {
 
 	return results[:i], nil
 }
+
+type DIYTrigrams struct {
+	Conn *pgx.Conn
+}
+
+func (s *DIYTrigrams) Description() string {
+	return "DIY trigram search using ILIKE ordered by similarity"
+}
+
+func (s *DIYTrigrams) Query(ctx context.Context, query string) ([]string, error) {
+	sql := `SELECT name FROM foods WHERE`
+	for i, stemmed := range Stemmed(query) {
+		if i > 0 {
+			sql += ` AND`
+		}
+
+		if len(stemmed) < 3 {
+			sql += fmt.Sprintf(`analyzed ILIKE '%%%s%%'`, stemmed)
+			continue
+		}
+
+		sql += ` (`
+		for i := 0; i < len(stemmed)-2; i++ {
+			if i > 0 {
+				sql += ` OR`
+			}
+			sql += fmt.Sprintf(` analyzed ILIKE '%%%s%%'`, stemmed[i:i+3])
+		}
+		sql += `)`
+	}
+	sql += ` ORDER BY similarity(analyzed, $1) DESC LIMIT 10`
+	rows, err := s.Conn.Query(ctx, sql, query)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	i := 0
+	results := make([]string, 10)
+	for ; rows.Next(); i++ {
+		if err := rows.Scan(&results[i]); err != nil {
+			return nil, errors.WithStack(err)
+		}
+	}
+
+	return results[:i], nil
+
+}
