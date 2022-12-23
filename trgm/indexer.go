@@ -81,6 +81,16 @@ func (i *Indexer) PostLoad(ctx context.Context) error {
 		return errors.WithStack(err)
 	}
 
+	_, err = i.Conn.Exec(ctx, `CREATE INDEX ON food_tokens USING GIN (token gin_trgm_ops);`)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	_, err = i.Conn.Exec(ctx, `CREATE INDEX ON tokens USING GIN (token gin_trgm_ops);`)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	_, err = i.Conn.Exec(ctx, `CREATE INDEX ON foods USING GIN (analyzed gin_trgm_ops);`)
 	return errors.WithStack(err)
 }
@@ -147,15 +157,16 @@ func (i *Indexer) loadTokens(ctx context.Context, chunk []*Food) error {
 		}
 
 		j := 0
-		rs := make([]interface{}, len(tokens))
+		rs := make([][]interface{}, len(tokens))
 		for tok := range tokens {
-			if _, ok := i.tokenMap[tok]; ok {
-				continue
+			if _, ok := i.tokenMap[tok]; !ok {
+				i.tokenMap[tok] = uuid.Must(uuid.NewV4())
 			}
-			i.tokenMap[tok] = uuid.Must(uuid.NewV4())
 			rs[j] = []interface{}{i.tokenMap[tok], food.ID()}
 			j++
 		}
+
+		rows = append(rows, rs...)
 	}
 
 	_, err := i.Conn.CopyFrom(ctx, pgx.Identifier{"food_to_token"}, []string{"token_id", "food_id"}, pgx.CopyFromRows(rows))

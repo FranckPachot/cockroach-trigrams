@@ -48,7 +48,10 @@ func Query(ctx context.Context, conn *pgx.Conn, query string) error {
 	queriers := []trgm.Querier{
 		&trgm.Naive{Conn: conn},
 		&trgm.Naive{Conn: conn, AnalyzedQuery: true},
+		&trgm.Naive{Conn: conn, AnalyzedField: true},
 		&trgm.Naive{Conn: conn, AnalyzedQuery: true, AnalyzedField: true},
+		&trgm.Tokenized{Conn: conn},
+		&trgm.ILike{Conn: conn},
 	}
 
 	for i, querier := range queriers {
