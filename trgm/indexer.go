@@ -38,21 +38,24 @@ DROP TABLE IF EXISTS tokens;
 DROP TABLE IF EXISTS food_tokens;
 DROP TABLE IF EXISTS food_to_token;
 
+create extension if not exists pgcrypto;
+create extension if not exists pg_trgm;
+
 CREATE TABLE IF NOT EXISTS foods(
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	name string NOT NULL,
-	analyzed string NOT NULL,
+	name text NOT NULL,
+	analyzed text NOT NULL,
 	weight float8 NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS food_tokens(
 	food_id uuid NOT NULL,
-	token string NOT NULL
+	token text NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tokens(
 	id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	token string NOT NULL
+	token text NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS food_to_token(

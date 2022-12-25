@@ -29,7 +29,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	conn := MustT(pgx.Connect(ctx, "postgres://root@localhost:26257/defaultdb"))
+	conn := MustT(pgx.Connect(ctx, "postgres://yugabyte@yb0.pachot.net:5433/yugabyte"))
 	defer conn.Close(context.Background())
 
 	switch os.Args[1] {
