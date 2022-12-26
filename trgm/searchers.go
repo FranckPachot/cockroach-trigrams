@@ -69,6 +69,7 @@ func (s *Naive) Query(ctx context.Context, query string) ([]string, error) {
 		s.Conn.Query(ctx, `SET pg_trgm.similarity_threshold = $1`, 0.2)
 	}
 
+  fmt.Printf("--SQL:\n prepare query as %s;\n explain(costs off, analyze, dist) execute query('%s');\n execute query('%s');\n deallocate query;\n--\n", sql, query, query)
 	rows, err := s.Conn.Query(ctx, sql, query)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -114,6 +115,7 @@ func (s *Tokenized) Query(ctx context.Context, query string) ([]string, error) {
 		inner,
 	)
 
+  fmt.Printf("--SQL:\n prepare query as %s;\n explain(costs off, analyze, dist) execute query('%s');\n execute query('%s');\n deallocate query;\n--\n", sql, query, query)
 	rows, err := s.Conn.Query(ctx, sql)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -149,6 +151,7 @@ func (s *ILike) Query(ctx context.Context, query string) ([]string, error) {
 	}
 	sql += ` ORDER BY similarity(analyzed, $1) DESC LIMIT 10`
 
+  fmt.Printf("--SQL:\n prepare query as %s;\n explain(costs off, analyze, dist) execute query('%s');\n execute query('%s');\n deallocate query;\n--\n", sql, query, query)
 	rows, err := s.Conn.Query(ctx, sql, query)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -195,6 +198,7 @@ func (s *DIYTrigrams) Query(ctx context.Context, query string) ([]string, error)
 		sql += `)`
 	}
 	sql += ` ORDER BY similarity(analyzed, $1) DESC LIMIT 10`
+  fmt.Printf("--SQL:\n prepare query as %s;\n explain(costs off, analyze, dist) execute query('%s');\n execute query('%s');\n deallocate query;\n--\n", sql, query, query)
 	rows, err := s.Conn.Query(ctx, sql, query)
 	if err != nil {
 		return nil, errors.WithStack(err)
